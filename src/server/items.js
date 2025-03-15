@@ -210,7 +210,7 @@ function dropItem(player, itemName, gameState) {
   let item = null;
   
   for (const id of player.inventory) {
-    const inventoryItem = items.get(id);
+    const inventoryItem = gameState.items.get(id);
     if (inventoryItem && inventoryItem.name.toLowerCase() === itemName.toLowerCase()) {
       itemId = id;
       item = inventoryItem;
