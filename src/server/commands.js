@@ -1,12 +1,11 @@
-const { players, rooms, mobs } = require('./server');
+const { gameState } = require('./server');
 
 // Command parser
 function parseCommand(message, playerId) {
-  const player = players.get(playerId);
+  const player = gameState.players.get(playerId);
   if (!player) {
     return { type: 'error', message: 'Player not found.' };
   }
-const { players, rooms, mobs } = require('./server');
   const words = message.trim().toLowerCase().split(/\s+/);
   const command = words[0];
   const args = words.slice(1);
@@ -160,7 +159,7 @@ const { players, rooms, mobs } = require('./server');
 
 // Movement function
 function movePlayer(player, direction) {
-  const currentRoom = rooms.get(player.roomId);
+  const currentRoom = gameState.rooms.get(player.roomId);
   if (!currentRoom) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -170,7 +169,7 @@ function movePlayer(player, direction) {
   }
   
   const newRoomId = currentRoom.exits[direction];
-  const newRoom = rooms.get(newRoomId);
+  const newRoom = gameState.rooms.get(newRoomId);
   
   if (!newRoom) {
     return { type: 'error', message: 'The destination does not exist.' };
@@ -205,7 +204,7 @@ function movePlayer(player, direction) {
 
 // Look at room function
 function lookRoom(player) {
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -225,7 +224,7 @@ function lookRoom(player) {
   // List players in the room
   const playersInRoom = Array.from(room.players)
     .filter(id => id !== player.id)
-    .map(id => players.get(id)?.name || 'Unknown Player');
+    .map(id => gameState.players.get(id)?.name || 'Unknown Player');
   
   if (playersInRoom.length > 0) {
     response += 'Players here: ' + playersInRoom.join(', ') + '\n';
@@ -233,7 +232,7 @@ function lookRoom(player) {
   
   // List mobs in the room
   const mobsInRoom = Array.from(room.mobs)
-    .map(id => mobs.get(id)?.name || 'Unknown Creature');
+    .map(id => gameState.mobs.get(id)?.name || 'Unknown Creature');
   
   if (mobsInRoom.length > 0) {
     response += 'Creatures here: ' + mobsInRoom.join(', ') + '\n';
@@ -241,7 +240,7 @@ function lookRoom(player) {
   
   // List items in the room
   const itemsInRoom = Array.from(room.items)
-    .map(id => items.get(id)?.name || 'Unknown Item');
+    .map(id => gameState.items.get(id)?.name || 'Unknown Item');
   
   if (itemsInRoom.length > 0) {
     response += 'Items here: ' + itemsInRoom.join(', ') + '\n';
@@ -252,14 +251,14 @@ function lookRoom(player) {
 
 // Look at specific target
 function lookAt(player, target) {
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
   
   // Check if looking at a player
   for (const playerId of room.players) {
-    const otherPlayer = players.get(playerId);
+    const otherPlayer = gameState.players.get(playerId);
     if (otherPlayer && otherPlayer.name.toLowerCase() === target.toLowerCase()) {
       return { 
         type: 'look', 
@@ -270,7 +269,7 @@ function lookAt(player, target) {
   
   // Check if looking at a mob
   for (const mobId of room.mobs) {
-    const mob = mobs.get(mobId);
+    const mob = gameState.mobs.get(mobId);
     if (mob && mob.name.toLowerCase() === target.toLowerCase()) {
       return { 
         type: 'look', 
@@ -281,7 +280,7 @@ function lookAt(player, target) {
   
   // Check if looking at an exit
   if (room.exits[target]) {
-    const exitRoom = rooms.get(room.exits[target]);
+    const exitRoom = gameState.rooms.get(room.exits[target]);
     if (exitRoom) {
       return { 
         type: 'look', 
@@ -418,7 +417,7 @@ Safe zones (like the castle) prevent combat from occurring.
 
 // Utility functions
 function broadcastToRoom(roomId, data) {
-  const room = rooms.get(roomId);
+  const room = gameState.rooms.get(roomId);
   if (!room) return;
   
   for (const playerId of room.players) {
@@ -428,7 +427,7 @@ function broadcastToRoom(roomId, data) {
 }
 
 function sendToPlayer(playerId, data) {
-  const player = players.get(playerId);
+  const player = gameState.players.get(playerId);
   if (!player || !player.socket) return;
   
   try {

@@ -1,10 +1,9 @@
-const { players, rooms } = require('./server');
+const { gameState } = require('./server');
 const { broadcastToRoom, sendToPlayer } = require('./commands');
 
 // Chat system
 function say(player, message, gameState) {
-  const { players, rooms } = gameState;
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -20,7 +19,6 @@ function say(player, message, gameState) {
 }
 
 function shout(player, message, gameState) {
-  const { players } = gameState;
   broadcastToAll({
     type: 'chat',
     channel: 'shout',
@@ -32,10 +30,9 @@ function shout(player, message, gameState) {
 }
 
 function whisper(player, targetName, message, gameState) {
-  const { players } = gameState;
   // Find the target player
   let targetPlayer = null;
-  for (const [_, p] of players.entries()) {
+  for (const [_, p] of gameState.players.entries()) {
     if (p.name.toLowerCase() === targetName.toLowerCase()) {
       targetPlayer = p;
       break;
@@ -58,8 +55,7 @@ function whisper(player, targetName, message, gameState) {
 }
 
 function emote(player, action, gameState) {
-  const { players, rooms } = gameState;
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -95,8 +91,7 @@ function bow(player, gameState) {
 }
 
 function broadcastToAll(data, gameState) {
-  const { players } = gameState;
-  for (const [playerId, _] of players.entries()) {
+  for (const [playerId, _] of gameState.players.entries()) {
     if (data.exclude && data.exclude.includes(playerId)) continue;
     sendToPlayer(playerId, data);
   }

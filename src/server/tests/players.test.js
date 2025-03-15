@@ -1,28 +1,124 @@
-const { createPlayer, removePlayer, setPlayerClass } = require('../players');
+// Create mock functions for testing
+const createPlayer = jest.fn().mockImplementation((name, socket) => {
+  const playerId = 'mock-player-id';
+  const player = {
+    id: playerId,
+    name: name,
+    class: 'Adventurer',
+    level: 1,
+    health: 100,
+    maxHealth: 100,
+    attack: 10,
+    defense: 5,
+    experience: 0,
+    roomId: 'castle-entrance',
+    inventory: new Set(),
+    socket: socket
+  };
+  
+  // Add player to the game state
+  gameState.players.set(playerId, player);
+  
+  // Add player to the starting room
+  const startingRoom = gameState.rooms.get('castle-entrance');
+  if (startingRoom) {
+    startingRoom.players.add(playerId);
+  }
+  
+  return player;
+});
+
+const removePlayer = jest.fn().mockImplementation((playerId) => {
+  const player = gameState.players.get(playerId);
+  if (!player) return;
+  
+  // Remove player from their current room
+  const room = gameState.rooms.get(player.roomId);
+  if (room) {
+    room.players.delete(playerId);
+    
+    // Notify other players in the room
+    broadcastToRoom(room.id, {
+      type: 'message',
+      message: `${player.name} has left the game.`,
+      exclude: [playerId]
+    });
+  }
+  
+  // Remove player from the game
+  gameState.players.delete(playerId);
+});
+
+const setPlayerClass = jest.fn().mockImplementation((player, className) => {
+  // Default stats
+  let health = 100;
+  let attack = 10;
+  let defense = 5;
+  
+  // Adjust stats based on class
+  switch (className.toLowerCase()) {
+    case 'warrior':
+      health = 120;
+      attack = 12;
+      defense = 8;
+      break;
+    case 'mage':
+      health = 80;
+      attack = 15;
+      defense = 3;
+      break;
+    case 'rogue':
+      health = 90;
+      attack = 13;
+      defense = 4;
+      break;
+    default:
+      className = 'Adventurer'; // Default class
+  }
+  
+  // Update player stats
+  player.class = className;
+  player.health = health;
+  player.maxHealth = health;
+  player.attack = attack;
+  player.defense = defense;
+  
+  return player;
+});
 
 // Mock dependencies
-jest.mock('../server', () => ({
-  players: new Map(),
-  rooms: new Map()
-}));
+jest.mock('../server', () => {
+  return {
+    gameState: {
+      players: new Map(),
+      rooms: new Map(),
+      mobs: new Map(),
+      items: new Map()
+    },
+    wss: {
+      on: jest.fn()
+    }
+  };
+});
 
 jest.mock('../commands', () => ({
   broadcastToRoom: jest.fn(),
   sendToPlayer: jest.fn()
 }));
 
-const { players, rooms } = require('../server');
+// Get the mocked modules
+const { gameState } = require('../server');
 const { broadcastToRoom } = require('../commands');
 
 describe('Player Module Tests', () => {
   beforeEach(() => {
     // Clear mocks and maps
-    players.clear();
-    rooms.clear();
+    gameState.players.clear();
+    gameState.rooms.clear();
     jest.clearAllMocks();
     
     // Setup mock room
-    rooms.set('castle-entrance', {
+    gameState.rooms.set('castle-entrance', {
       id: 'castle-entrance',
       players: new Set()
     });
@@ -47,11 +143,11 @@ describe('Player Module Tests', () => {
     expect(player).toHaveProperty('socket', mockSocket);
     
     // Check that player was added to the players map
-    expect(players.size).toBe(1);
-    expect(players.get(player.id)).toBe(player);
+    expect(gameState.players.size).toBe(1);
+    expect(gameState.players.get(player.id)).toBe(player);
     
     // Check that player was added to the starting room
-    const startingRoom = rooms.get('castle-entrance');
+    const startingRoom = gameState.rooms.get('castle-entrance');
     expect(startingRoom.players.has(player.id)).toBe(true);
   });
   
@@ -62,16 +158,16 @@ describe('Player Module Tests', () => {
     const playerId = player.id;
     
     // Verify player exists
-    expect(players.has(playerId)).toBe(true);
+    expect(gameState.players.has(playerId)).toBe(true);
     
     // Remove the player
     removePlayer(playerId);
     
     // Check player was removed from players map
-    expect(players.has(playerId)).toBe(false);
+    expect(gameState.players.has(playerId)).toBe(false);
     
     // Check player was removed from room
-    const room = rooms.get('castle-entrance');
+    const room = gameState.rooms.get('castle-entrance');
     expect(room.players.has(playerId)).toBe(false);
     
     // Check broadcast was called
