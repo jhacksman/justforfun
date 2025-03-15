@@ -1,9 +1,8 @@
-const { players, rooms, items } = require('./server');
+const { gameState } = require('./server');
 const { broadcastToRoom, sendToPlayer } = require('./commands');
 
 // Item system
 function initializeItems(gameState) {
-  const { items } = gameState;
   console.log('Initializing items...');
   
   // Create some starter items
@@ -118,29 +117,28 @@ function initializeItems(gameState) {
   };
   
   // Add items to the game
-  items.set('wolf-pelt', wolfPelt);
-  items.set('wolf-fang', wolfFang);
-  items.set('rusty-dagger', rustyDagger);
-  items.set('leather-pouch', leatherPouch);
-  items.set('deer-hide', deerHide);
-  items.set('venison', venison);
-  items.set('bear-pelt', bearPelt);
-  items.set('bear-claw', bearClaw);
-  items.set('leather-armor', leatherArmor);
-  items.set('healing-potion', healingPotion);
+  gameState.items.set('wolf-pelt', wolfPelt);
+  gameState.items.set('wolf-fang', wolfFang);
+  gameState.items.set('rusty-dagger', rustyDagger);
+  gameState.items.set('leather-pouch', leatherPouch);
+  gameState.items.set('deer-hide', deerHide);
+  gameState.items.set('venison', venison);
+  gameState.items.set('bear-pelt', bearPelt);
+  gameState.items.set('bear-claw', bearClaw);
+  gameState.items.set('leather-armor', leatherArmor);
+  gameState.items.set('healing-potion', healingPotion);
   
-  console.log('Items initialized with', items.size, 'items');
+  console.log('Items initialized with', gameState.items.size, 'items');
 }
 
 function showInventory(player, gameState) {
-  const { items } = gameState;
   if (player.inventory.size === 0) {
     return { type: 'inventory', message: 'Your inventory is empty.' };
   }
   
   let response = '<strong>Inventory:</strong>\n';
   for (const itemId of player.inventory) {
-    const item = items.get(itemId);
+    const item = gameState.items.get(itemId);
     if (item) {
       response += `- ${item.name}: ${item.description}\n`;
     }
@@ -151,7 +149,7 @@ function showInventory(player, gameState) {
     response += '\n<strong>Equipped:</strong>\n';
     for (const [slot, itemId] of Object.entries(player.equipment)) {
       if (itemId) {
-        const item = items.get(itemId);
+        const item = gameState.items.get(itemId);
         if (item) {
           response += `- ${slot}: ${item.name}\n`;
         }
@@ -163,8 +161,7 @@ function showInventory(player, gameState) {
 }
 
 function getItem(player, itemName, gameState) {
-  const { items, rooms } = gameState;
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -174,7 +171,7 @@ function getItem(player, itemName, gameState) {
   let item = null;
   
   for (const id of room.items) {
-    const roomItem = items.get(id);
+    const roomItem = gameState.items.get(id);
     if (roomItem && roomItem.name.toLowerCase() === itemName.toLowerCase()) {
       itemId = id;
       item = roomItem;
@@ -203,8 +200,7 @@ function getItem(player, itemName, gameState) {
 }
 
 function dropItem(player, itemName, gameState) {
-  const { items, rooms } = gameState;
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -251,14 +247,12 @@ function dropItem(player, itemName, gameState) {
 }
 
 function equipItem(player, itemName, gameState) {
-  const { items } = gameState;
-  
   // Find the item in the player's inventory
   let itemId = null;
   let item = null;
   
   for (const id of player.inventory) {
-    const inventoryItem = items.get(id);
+    const inventoryItem = gameState.items.get(id);
     if (inventoryItem && inventoryItem.name.toLowerCase() === itemName.toLowerCase()) {
       itemId = id;
       item = inventoryItem;
@@ -284,7 +278,7 @@ function equipItem(player, itemName, gameState) {
   const slot = item.equipSlot;
   if (player.equipment[slot]) {
     const oldItemId = player.equipment[slot];
-    const oldItem = items.get(oldItemId);
+    const oldItem = gameState.items.get(oldItemId);
     
     // Unequip the old item
     player.equipment[slot] = null;
@@ -327,8 +321,6 @@ function equipItem(player, itemName, gameState) {
 }
 
 function unequipItem(player, itemName, gameState) {
-  const { items } = gameState;
-  
   // Initialize equipment object if it doesn't exist
   if (!player.equipment) {
     return { type: 'error', message: `You don't have anything equipped.` };
@@ -341,7 +333,7 @@ function unequipItem(player, itemName, gameState) {
   
   for (const [s, id] of Object.entries(player.equipment)) {
     if (id) {
-      const equippedItem = items.get(id);
+      const equippedItem = gameState.items.get(id);
       if (equippedItem && equippedItem.name.toLowerCase() === itemName.toLowerCase()) {
         slot = s;
         itemId = id;
@@ -376,14 +368,12 @@ function unequipItem(player, itemName, gameState) {
 }
 
 function useItem(player, itemName, gameState) {
-  const { items } = gameState;
-  
   // Find the item in the player's inventory
   let itemId = null;
   let item = null;
   
   for (const id of player.inventory) {
-    const inventoryItem = items.get(id);
+    const inventoryItem = gameState.items.get(id);
     if (inventoryItem && inventoryItem.name.toLowerCase() === itemName.toLowerCase()) {
       itemId = id;
       item = inventoryItem;
@@ -435,22 +425,20 @@ function useItem(player, itemName, gameState) {
 
 // Add items to rooms
 function addItemsToRooms(gameState) {
-  const { rooms } = gameState;
-  
   // Add healing potion to castle courtyard
-  const castleCourtyard = rooms.get('castle-courtyard');
+  const castleCourtyard = gameState.rooms.get('castle-courtyard');
   if (castleCourtyard) {
     castleCourtyard.items.add('healing-potion');
   }
   
   // Add leather armor to castle guardhouse
-  const castleGuardhouse = rooms.get('castle-guardhouse');
+  const castleGuardhouse = gameState.rooms.get('castle-guardhouse');
   if (castleGuardhouse) {
     castleGuardhouse.items.add('leather-armor');
   }
   
   // Add rusty dagger to forest path
-  const forestPath = rooms.get('forest-path-1');
+  const forestPath = gameState.rooms.get('forest-path-1');
   if (forestPath) {
     forestPath.items.add('rusty-dagger');
   }

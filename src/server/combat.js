@@ -2,7 +2,6 @@ const { broadcastToRoom, sendToPlayer, lookRoom } = require('./commands');
 
 // Combat system
 function initializeMobs(gameState) {
-  const { players, rooms, mobs } = gameState;
   console.log('Initializing mobs...');
   
   // Create some starter mobs
@@ -82,18 +81,17 @@ function initializeMobs(gameState) {
   };
   
   // Add mobs to the game
-  mobs.set('forest-wolf-1', forestWolf);
-  mobs.set('forest-wolf-2', forestWolf2);
-  mobs.set('forest-bandit-1', forestBandit);
-  mobs.set('forest-deer-1', forestDeer);
-  mobs.set('forest-bear-1', forestBear);
+  gameState.mobs.set('forest-wolf-1', forestWolf);
+  gameState.mobs.set('forest-wolf-2', forestWolf2);
+  gameState.mobs.set('forest-bandit-1', forestBandit);
+  gameState.mobs.set('forest-deer-1', forestDeer);
+  gameState.mobs.set('forest-bear-1', forestBear);
   
-  console.log('Mobs initialized with', mobs.size, 'creatures');
+  console.log('Mobs initialized with', gameState.mobs.size, 'creatures');
 }
 
 function attackTarget(player, target, gameState) {
-  const { players, rooms, mobs } = gameState;
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (!room) {
     return { type: 'error', message: 'You are in an unknown location.' };
   }
@@ -106,7 +104,7 @@ function attackTarget(player, target, gameState) {
   // Find the target mob
   let targetMob = null;
   for (const mobId of room.mobs) {
-    const mob = mobs.get(mobId);
+    const mob = gameState.mobs.get(mobId);
     if (mob && mob.name.toLowerCase() === target.toLowerCase()) {
       targetMob = mob;
       break;
@@ -175,10 +173,10 @@ function attackTarget(player, target, gameState) {
       };
       
       // Add the mob back to the game world
-      mobs.set(newMob.id, newMob);
+      gameState.mobs.set(newMob.id, newMob);
       
       // Add the mob back to the room
-      const respawnRoom = rooms.get(newMob.roomId);
+      const respawnRoom = gameState.rooms.get(newMob.roomId);
       if (respawnRoom) {
         respawnRoom.mobs.add(newMob.id);
         
@@ -219,7 +217,7 @@ function attackTarget(player, target, gameState) {
     room.players.delete(player.id);
     
     // Add player to castle entrance
-    const castleEntrance = rooms.get('castle-entrance');
+    const castleEntrance = gameState.rooms.get('castle-entrance');
     castleEntrance.players.add(player.id);
     
     // Update player's room
@@ -241,7 +239,7 @@ function attackTarget(player, target, gameState) {
     });
     
     // Return the look result for the castle entrance
-    return lookRoom(players.get(player.id));
+    return lookRoom(gameState.players.get(player.id));
   }
   
   return { 

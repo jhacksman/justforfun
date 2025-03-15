@@ -1,6 +1,5 @@
 // Game world initialization
 function initializeWorld(gameState) {
-  const { rooms, mobs } = gameState;
   console.log('Initializing game world...');
   
   // Create the castle (starting area)
@@ -148,17 +147,17 @@ function initializeWorld(gameState) {
   };
   
   // Add rooms to the game world
-  rooms.set('castle-entrance', castleEntrance);
-  rooms.set('castle-courtyard', castleCourtyard);
-  rooms.set('castle-gardens', castleGardens);
-  rooms.set('castle-guardhouse', castleGuardhouse);
-  rooms.set('forest-path-1', forestPath1);
-  rooms.set('forest-path-2', forestPath2);
-  rooms.set('forest-path-3', forestPath3);
-  rooms.set('forest-clearing-1', forestClearing1);
-  rooms.set('deep-forest-1', deepForest1);
+  gameState.rooms.set('castle-entrance', castleEntrance);
+  gameState.rooms.set('castle-courtyard', castleCourtyard);
+  gameState.rooms.set('castle-gardens', castleGardens);
+  gameState.rooms.set('castle-guardhouse', castleGuardhouse);
+  gameState.rooms.set('forest-path-1', forestPath1);
+  gameState.rooms.set('forest-path-2', forestPath2);
+  gameState.rooms.set('forest-path-3', forestPath3);
+  gameState.rooms.set('forest-clearing-1', forestClearing1);
+  gameState.rooms.set('deep-forest-1', deepForest1);
   
-  console.log('Game world initialized with', rooms.size, 'rooms');
+  console.log('Game world initialized with', gameState.rooms.size, 'rooms');
 }
 
 module.exports = { initializeWorld };

@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { players, rooms } = require('./server');
+const { gameState } = require('./server');
 const { broadcastToRoom, sendToPlayer } = require('./commands');
 
 // Player management
@@ -21,21 +21,21 @@ function createPlayer(name, socket) {
   };
   
   // Add player to the game
-  players.set(playerId, player);
+  gameState.players.set(playerId, player);
   
   // Add player to the starting room
-  const startingRoom = rooms.get('castle-entrance');
+  const startingRoom = gameState.rooms.get('castle-entrance');
   startingRoom.players.add(playerId);
   
   return player;
 }
 
 function removePlayer(playerId) {
-  const player = players.get(playerId);
+  const player = gameState.players.get(playerId);
   if (!player) return;
   
   // Remove player from their current room
-  const room = rooms.get(player.roomId);
+  const room = gameState.rooms.get(player.roomId);
   if (room) {
     room.players.delete(playerId);
     
@@ -48,7 +48,7 @@ function removePlayer(playerId) {
   }
   
   // Remove player from the game
-  players.delete(playerId);
+  gameState.players.delete(playerId);
 }
 
 // Update player class and stats
@@ -102,7 +102,7 @@ function handleLogin(data, socket) {
   }
   
   // Check if name is already taken
-  for (const [_, player] of players.entries()) {
+  for (const [_, player] of gameState.players.entries()) {
     if (player.name.toLowerCase() === name.toLowerCase()) {
       return {
         type: 'error',

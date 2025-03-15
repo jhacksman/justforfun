@@ -13,10 +13,12 @@ const wss = new WebSocket.Server({ server });
 app.use(express.static(path.join(__dirname, '../client')));
 
 // Game state (in-memory for now)
-const players = new Map();
-const rooms = new Map();
-const items = new Map();
-const mobs = new Map();
+const gameState = {
+  players: new Map(),
+  rooms: new Map(),
+  items: new Map(),
+  mobs: new Map()
+};
 
 // WebSocket connection handler
 wss.on('connection', (socket) => {
@@ -36,9 +38,9 @@ wss.on('connection', (socket) => {
       
       // Process message based on type
       if (data.type === 'command') {
-        // Get the player ID associated with this socket
+       // Get the player ID associated with this socket
         let playerId = null;
-        for (const [id, player] of players.entries()) {
+        for (const [id, player] of gameState.players.entries()) {
           if (player.socket === socket) {
             playerId = id;
             break;
@@ -66,7 +68,7 @@ wss.on('connection', (socket) => {
         if (result.type === 'login') {
           // Find the player ID
           let playerId = null;
-          for (const [id, player] of players.entries()) {
+          for (const [id, player] of gameState.players.entries()) {
             if (player.socket === socket) {
               playerId = id;
               break;
@@ -74,7 +76,7 @@ wss.on('connection', (socket) => {
           }
           
           if (playerId) {
-            const roomDescription = commands.lookRoom(players.get(playerId));
+            const roomDescription = commands.lookRoom(gameState.players.get(playerId));
             socket.send(JSON.stringify(roomDescription));
           }
         }
@@ -95,7 +97,7 @@ wss.on('connection', (socket) => {
     
     // Find the player associated with this socket
     let playerId = null;
-    for (const [id, player] of players.entries()) {
+    for (const [id, player] of gameState.players.entries()) {
       if (player.socket === socket) {
         playerId = id;
         break;
@@ -124,12 +126,12 @@ server.listen(PORT, () => {
   
   // Initialize the game world after the server starts
   // Pass the game state to avoid circular dependencies
-  initializeWorld({ players, rooms, items, mobs });
+  initializeWorld(gameState);
   
   // Initialize mobs and items
-  combat.initializeMobs({ players, rooms, items, mobs });
-  itemSystem.initializeItems({ players, rooms, items, mobs });
-  itemSystem.addItemsToRooms({ players, rooms, items, mobs });
+  combat.initializeMobs(gameState);
+  itemSystem.initializeItems(gameState);
+  itemSystem.addItemsToRooms(gameState);
 });
 
 // Export necessary variables and functions for other modules
@@ -137,8 +139,5 @@ module.exports = {
   app,
   server,
   wss,
-  players,
-  rooms,
-  items,
-  mobs
+  gameState
 };
