@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JustForFun MUD</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>JustForFun MUD</h1>
+    </header>
+    
+    <div id="login-screen" class="screen">
+      <h2>Welcome to the MUD</h2>
+      <p>Enter your character name to begin:</p>
+      <div class="form-group">
+        <input type="text" id="character-name" placeholder="Character Name">
+        <select id="character-class">
+          <option value="Warrior">Warrior</option>
+          <option value="Mage">Mage</option>
+          <option value="Rogue">Rogue</option>
+          <option value="Adventurer">Adventurer</option>
+        </select>
+        <button id="login-button">Enter the World</button>
+      </div>
+    </div>
+    
+    <div id="game-screen" class="screen hidden">
+      <div id="output-container">
+        <div id="output"></div>
+      </div>
+      
+      <div id="status-bar">
+        <div id="health-status">Health: <span id="health">100</span>/<span id="max-health">100</span></div>
+        <div id="level-status">Level: <span id="level">1</span></div>
+        <div id="exp-status">Exp: <span id="exp">0</span></div>
+      </div>
+      
+      <div id="input-container">
+        <input type="text" id="command-input" placeholder="Enter command...">
+        <button id="send-button">Send</button>
+      </div>
+      
+      <div id="command-help">
+        <div class="command-category">
+          <h3>Movement</h3>
+          <button class="command-btn" data-command="north">North</button>
+          <button class="command-btn" data-command="south">South</button>
+          <button class="command-btn" data-command="east">East</button>
+          <button class="command-btn" data-command="west">West</button>
+        </div>
+        <div class="command-category">
+          <h3>Actions</h3>
+          <button class="command-btn" data-command="look">Look</button>
+          <button class="command-btn" data-command="inventory">Inventory</button>
+          <button class="command-btn" data-command="help">Help</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="client.js"></script>
+</body>
+</html>
