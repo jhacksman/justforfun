@@ -51,7 +51,7 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Attack what?' };
       }
       const combatSystem = require('./combat');
-      return combatSystem.attackTarget(player, args.join(' '), { players, rooms, mobs });
+      return combatSystem.attackTarget(player, args.join(' '), gameState);
       
     // Chat commands
     case 'say':
@@ -59,14 +59,14 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Say what?' };
       }
       const chatSystem = require('./chat');
-      return chatSystem.say(player, args.join(' '), { players, rooms, mobs });
+      return chatSystem.say(player, args.join(' '), gameState);
       
     case 'shout':
       if (args.length === 0) {
         return { type: 'error', message: 'Shout what?' };
       }
       const chatSystem2 = require('./chat');
-      return chatSystem2.shout(player, args.join(' '), { players, rooms, mobs });
+      return chatSystem2.shout(player, args.join(' '), gameState);
       
     case 'whisper':
       if (args.length < 2) {
@@ -75,7 +75,7 @@ function parseCommand(message, playerId) {
       const targetName = args[0];
       const whisperMessage = args.slice(1).join(' ');
       const chatSystem3 = require('./chat');
-      return chatSystem3.whisper(player, targetName, whisperMessage, { players, rooms, mobs });
+      return chatSystem3.whisper(player, targetName, whisperMessage, gameState);
       
     // Emote commands
     case 'emote':
@@ -84,33 +84,33 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Emote what?' };
       }
       const chatSystem4 = require('./chat');
-      return chatSystem4.emote(player, args.join(' '), { players, rooms, mobs });
+      return chatSystem4.emote(player, args.join(' '), gameState);
       
     case 'smile':
       const chatSystem5 = require('./chat');
-      return chatSystem5.smile(player, { players, rooms, mobs });
+      return chatSystem5.smile(player, gameState);
       
     case 'laugh':
       const chatSystem6 = require('./chat');
-      return chatSystem6.laugh(player, { players, rooms, mobs });
+      return chatSystem6.laugh(player, gameState);
       
     case 'wave':
       const chatSystem7 = require('./chat');
-      return chatSystem7.wave(player, { players, rooms, mobs });
+      return chatSystem7.wave(player, gameState);
       
     case 'dance':
       const chatSystem8 = require('./chat');
-      return chatSystem8.dance(player, { players, rooms, mobs });
+      return chatSystem8.dance(player, gameState);
       
     case 'bow':
       const chatSystem9 = require('./chat');
-      return chatSystem9.bow(player, { players, rooms, mobs });
+      return chatSystem9.bow(player, gameState);
       
     // Inventory commands
     case 'inventory':
     case 'i':
       const itemSystem = require('./items');
-      return itemSystem.showInventory(player, { players, rooms, items, mobs });
+      return itemSystem.showInventory(player, gameState);
       
     case 'get':
     case 'take':
@@ -118,14 +118,14 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Get what?' };
       }
       const itemSystem2 = require('./items');
-      return itemSystem2.getItem(player, args.join(' '), { players, rooms, items, mobs });
+      return itemSystem2.getItem(player, args.join(' '), gameState);
       
     case 'drop':
       if (args.length === 0) {
         return { type: 'error', message: 'Drop what?' };
       }
       const itemSystem3 = require('./items');
-      return itemSystem3.dropItem(player, args.join(' '), { players, rooms, items, mobs });
+      return itemSystem3.dropItem(player, args.join(' '), gameState);
       
     case 'equip':
     case 'wear':
@@ -134,7 +134,7 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Equip what?' };
       }
       const itemSystem4 = require('./items');
-      return itemSystem4.equipItem(player, args.join(' '), { players, rooms, items, mobs });
+      return itemSystem4.equipItem(player, args.join(' '), gameState);
       
     case 'unequip':
     case 'remove':
@@ -142,7 +142,7 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Unequip what?' };
       }
       const itemSystem5 = require('./items');
-      return itemSystem5.unequipItem(player, args.join(' '), { players, rooms, items, mobs });
+      return itemSystem5.unequipItem(player, args.join(' '), gameState);
       
     case 'use':
     case 'consume':
@@ -150,7 +150,7 @@ function parseCommand(message, playerId) {
         return { type: 'error', message: 'Use what?' };
       }
       const itemSystem6 = require('./items');
-      return itemSystem6.useItem(player, args.join(' '), { players, rooms, items, mobs });
+      return itemSystem6.useItem(player, args.join(' '), gameState);
       
     default:
       return { type: 'error', message: 'Unknown command. Type "help" for a list of commands.' };
