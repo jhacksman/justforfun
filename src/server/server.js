@@ -20,6 +20,24 @@ const gameState = {
   mobs: new Map()
 };
 
+// Export necessary variables and functions for other modules
+// Export gameState first to avoid circular dependency issues
+module.exports = {
+  app,
+  server,
+  wss,
+  gameState
+};
+
+// Import the game world initialization function, command parser, player manager, combat system, chat system, and item system
+// Import these modules after exporting gameState to avoid circular dependency issues
+const { initializeWorld } = require('./world');
+const commands = require('./commands');
+const playerManager = require('./players');
+const combat = require('./combat');
+const chat = require('./chat');
+const itemSystem = require('./items');
+
 // WebSocket connection handler
 wss.on('connection', (socket) => {
   console.log('Client connected');
@@ -35,6 +53,7 @@ wss.on('connection', (socket) => {
     try {
       const data = JSON.parse(message);
       console.log('Received:', data);
+      console.log('Message type:', data.type);
       
       // Process message based on type
       if (data.type === 'command') {
@@ -60,8 +79,10 @@ wss.on('connection', (socket) => {
         socket.send(JSON.stringify(result));
       }
       else if (data.type === 'login') {
+        console.log('Processing login for:', data.name);
         // Handle player login
         const result = playerManager.handleLogin(data, socket);
+        console.log('Login result:', result);
         socket.send(JSON.stringify(result));
         
         // If login was successful, also send the room description
@@ -111,14 +132,6 @@ wss.on('connection', (socket) => {
   });
 });
 
-// Import the game world initialization function, command parser, player manager, combat system, chat system, and item system
-const { initializeWorld } = require('./world');
-const commands = require('./commands');
-const playerManager = require('./players');
-const combat = require('./combat');
-const chat = require('./chat');
-const itemSystem = require('./items');
-
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
@@ -133,11 +146,3 @@ server.listen(PORT, () => {
   itemSystem.initializeItems(gameState);
   itemSystem.addItemsToRooms(gameState);
 });
-
-// Export necessary variables and functions for other modules
-module.exports = {
-  app,
-  server,
-  wss,
-  gameState
-};
